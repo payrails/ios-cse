@@ -1,0 +1,28 @@
+name: 'Naming'
+on: pull_request
+
+jobs:
+  check-branch-name:
+    name: Branch-Name
+    runs-on: ubuntu-latest
+    if: (github.actor != 'dependabot[bot]')
+    steps:
+      # Check that branch starts with a ticket number
+      # e.g. PAY-123-some_branch_name
+      # master and develop are the only 2 exceptions
+      # see: https://github.com/marketplace/actions/branch-name-rules
+      - uses: deepakputhraya/action-branch-name@master
+        with:
+          regex: '^[A-Z]+-[0-9]+-.*$'
+          ignore: master,develop
+  check-pr-title:
+    name: PR-Title
+    runs-on: ubuntu-latest
+    if: (github.actor != 'dependabot[bot]')
+    steps:
+      # Check that PR title starts with a ticket number
+      # e.g. PAY-123: some commit message
+      # see: https://github.com/marketplace/actions/check-pull-request-title
+      - uses: Slashgear/action-check-pr-title@v4.3.0
+        with:
+          regexp: '^[A-Z]+-[0-9]+:.*$'
