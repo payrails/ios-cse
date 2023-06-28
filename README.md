@@ -1,19 +1,5 @@
-# Payrails Template Repository
+# Payrails iOS CSE SDK
 
-[![Semgrep Badge](https://github.com/payrails/template-repository/actions/workflows/semgrep.yaml/badge.svg?branch=master)](https://github.com/payrails/template-repository/actions/workflows/semgrep.yaml)
- 
-### Features
+## Features
 
-...
-
-### Getting Started
-
-...
-
-### Reporting Vulnerabilities
-
-...
-
-### Contributing
-
-...
+SDK provides client side encryption and tokenization on Payrails platform.

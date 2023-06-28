@@ -51,7 +51,7 @@ struct PayrailsCSE {
 
         let header = JWEHeader(keyManagementAlgorithm: .RSAOAEP256, contentEncryptionAlgorithm: .A256CBCHS512)
         
-        let publicKey: SecKey = getPublicKey(cseConfig.tokenization.publicKey)
+        let publicKey: SecKey = try getPublicKey(cseConfig.tokenization.publicKey)
         let encrypter = Encrypter(keyManagementAlgorithm: .RSAOAEP256, contentEncryptionAlgorithm: .A256CBCHS512, encryptionKey: publicKey)!
         let jwe = try! JWE(header: header, payload: Payload(jsonCard), encrypter: encrypter)
         
@@ -129,23 +129,28 @@ struct PayrailsCSE {
         return config
     }
     
-    private func getPublicKey(_ publicKey: String) -> SecKey {
-            let publicKeyData = Data(base64Encoded: publicKey)!
-            
-            var error: Unmanaged<CFError>?
-            let options: [CFString: Any] = [
-                kSecAttrKeyType: kSecAttrKeyTypeRSA,
-                kSecAttrKeyClass: kSecAttrKeyClassPublic,
-                kSecAttrKeySizeInBits: 2048,
-                kSecReturnPersistentRef: kCFBooleanFalse
-            ]
-            
-            guard let publicKeyRef = SecKeyCreateWithData(publicKeyData as CFData, options as CFDictionary, &error) else {
-                fatalError("Failed to create public key: \(error!)")
-            }
-            
-            return publicKeyRef
+    private func getPublicKey(_ publicKey: String) throws -> SecKey {
+        let publicKeyData = Data(base64Encoded: publicKey)!
+        
+        var error: Unmanaged<CFError>?
+        
+        guard let kCFBooleanFalse = kCFBooleanFalse else {
+            throw NSError(domain: "Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "kCFBooleanFalse is nil"])
         }
+        
+        let options: [CFString: Any] = [
+            kSecAttrKeyType: kSecAttrKeyTypeRSA,
+            kSecAttrKeyClass: kSecAttrKeyClassPublic,
+            kSecAttrKeySizeInBits: 2048,
+            kSecReturnPersistentRef: kCFBooleanFalse
+        ]
+            
+        guard let publicKeyRef = SecKeyCreateWithData(publicKeyData as CFData, options as CFDictionary, &error) else {
+            fatalError("Failed to create public key: \(error!)")
+        }
+        
+        return publicKeyRef
+    }
 }
 
 struct CSEConfiguration: Codable {
