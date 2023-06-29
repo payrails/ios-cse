@@ -7,10 +7,11 @@ struct InitResponse: Codable {
 }
 
 struct Card: Codable {
-    let holderName: String?
+    let holderReference: String
     let cardNumber: String
     let expiryMonth: String
     let expiryYear: String
+    let holderName: String?
     let securityCode: String?
 }
 
@@ -23,9 +24,9 @@ struct TokenizationRequest: Codable {
 }
 
 enum FutureUsage: String, Codable {
-    case recurring
-    case cardOnFile
-    case unscheduledCardOnFile
+    case Subscription
+    case CardOnFile
+    case UnscheduledCardOnFile
 }
 
 struct TokenizeResponse: Codable {
@@ -214,8 +215,8 @@ enum PaymentMethodType: String, Codable {
     case applePay
     case googlePay
     case klarna
-    case klarnaPaynow
-    case klarnaAccount
+    case klarna_paynow
+    case klarna_account
     case payPal
     case undetermined
 }

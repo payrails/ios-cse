@@ -25,8 +25,8 @@ SDK provides client side encryption and tokenization on Payrails platform.
 
   s.homepage         = 'https://github.com/payrails/ios-cse'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'Nikita Gubchenko' => 'nikita@payrails.com' }
-  s.source           = { :git => 'git://github.com/payrails/ios-cse.git', :tag => s.version.to_s }
+  s.author           = { 'Payrails' => 'contact@payrails.com' }
+  s.source           = { :git => 'https://github.com/payrails/ios-cse.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '10.0'
 

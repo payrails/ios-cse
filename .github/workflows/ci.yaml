@@ -1,0 +1,19 @@
+name: iOS CSE CI
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  ci:
+    runs-on: macos-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Pod Lint
+        run: |
+          pod lib lint PayrailsCSE/PayrailsCSE.podspec
