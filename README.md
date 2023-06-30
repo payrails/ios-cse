@@ -11,6 +11,10 @@ SDK provides client side encryption and tokenization on Payrails platform.
 Add `pod 'PayrailsCSE'` to your `Podfile`.
 Run `pod install`.
 
+### Swift Package Manager
+
+Use `https://github.com/Payrails/ios-cse` as the repository URL
+
 ## Usage example
 
 ```(swift)
