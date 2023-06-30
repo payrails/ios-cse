@@ -1,45 +1,24 @@
 import Foundation
 import JOSESwift
 
-struct InitResponse: Codable {
-    let version: String
-    let data: String
-}
-
-struct Card: Codable {
-    let holderReference: String
-    let cardNumber: String
-    let expiryMonth: String
-    let expiryYear: String
-    let holderName: String?
-    let securityCode: String?
-}
-
-struct TokenizationRequest: Codable {
-    let id: UUID
-    let holderReference: String
-    let encryptedInstrumentDetails: String
-    let futureUsage: FutureUsage?
-    let storeInstrument: Bool?
-}
-
-enum FutureUsage: String, Codable {
+public enum FutureUsage: String, Codable {
     case Subscription
     case CardOnFile
     case UnscheduledCardOnFile
 }
 
-struct TokenizeResponse: Codable {
-    let code: Int
-    let instrument: Instrument?
-    let errors: [PayrailsError]?
+public struct TokenizeResponse: Codable {
+    public let code: Int
+    public let instrument: Instrument?
+    public let errors: [PayrailsError]?
 }
 
-struct PayrailsCSE {
+public struct PayrailsCSE {
     var cseConfig: CSEConfiguration?
     
-    init(initResponse: InitResponse) {
-        let config = parseConfig(data: initResponse.data)
+    public init(data: String, version: String) {
+        print("Initializing config of version", version)
+        let config = parseConfig(data: data)
         cseConfig = config
     }
     
@@ -59,14 +38,34 @@ struct PayrailsCSE {
         return jwe.compactSerializedString
     }
     
-    func tokenize(card: Card, futureUsage: FutureUsage? = nil, storeInstrument: Bool? = true, completion: @escaping ((Result<TokenizeResponse, Error>) -> Void)) throws -> Void {
+    public func tokenize(
+        cardNumber: String,
+        expiryMonth: String,
+        expiryYear: String,
+        holderName: String? = nil,
+        securityCode: String? = nil,
+        futureUsage: FutureUsage? = nil,
+        storeInstrument: Bool? = true,
+        completion: @escaping ((Result<TokenizeResponse, Error>) -> Void)
+    ) throws -> Void {
         guard let cseConfig = cseConfig else {
             throw NSError(domain: "ConfigError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Missing Config"])
         }
+        
+        let card = Card(
+            holderReference: cseConfig.holderReference,
+            cardNumber: cardNumber,
+            expiryMonth: expiryMonth,
+            expiryYear: expiryYear,
+            holderName: holderName,
+            securityCode: securityCode
+        )
+        
         let encryptedCard = try! encryptCard(card: card)
         guard let tokenizeURL = URL(string: cseConfig.tokenization.links.tokenize.href) else {
             throw NSError(domain: "URLParsingError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
         }
+        
         
         var request = URLRequest(url: tokenizeURL)
         request.httpMethod = cseConfig.tokenization.links.tokenize.method
@@ -102,6 +101,7 @@ struct PayrailsCSE {
                 
                 if httpResponse.statusCode == 201 {
                     let jsonResponse = try JSONDecoder().decode(Instrument.self, from: data)
+                
                     completion(.success(TokenizeResponse(code: httpResponse.statusCode, instrument: jsonResponse, errors: nil)))
                     return
                 } else {
@@ -154,6 +154,23 @@ struct PayrailsCSE {
     }
 }
 
+struct Card: Codable {
+    var holderReference: String
+    var cardNumber: String
+    var expiryMonth: String
+    var expiryYear: String
+    var holderName: String?
+    var securityCode: String?
+}
+
+struct TokenizationRequest: Codable {
+    let id: UUID
+    let holderReference: String
+    let encryptedInstrumentDetails: String
+    let futureUsage: FutureUsage?
+    let storeInstrument: Bool?
+}
+
 struct CSEConfiguration: Codable {
     let token: String
     let holderReference: String
@@ -175,33 +192,33 @@ struct Link: Codable {
     let href: String
 }
 
-struct Instrument: Codable {
-    let id: UUID
-    let createdAt: Instant
-    let holderId: UUID
-    let holderReference: String?
-    let paymentMethod: PaymentMethodType
-    let status: InstrumentStatus
-    let description: String?
-    let storeInstrument: Bool
-    let data: InstrumentData
-    let providerData: CodableValue?
-    let futureUsage: FutureUsage
-    let fingerprint: String?
+public struct Instrument: Codable {
+    public let id: UUID
+    public let createdAt: String
+    public let holderId: UUID
+    public let holderReference: String?
+    public let paymentMethod: PaymentMethodType
+    public let status: InstrumentStatus
+    public let description: String?
+    public let storeInstrument: Bool
+    public let data: InstrumentData
+    public let providerData: CodableValue?
+    public let futureUsage: String?
+    public let fingerprint: String?
 }
 
-struct InstrumentData: Codable {
-    let bin: String?
-    let holderName: String?
-    let scheme: String?
-    let suffix: String?
-    let expiryMonth: String?
-    let expiryYear: String?
-    let paymentToken: String?
-    let email: String?
+public struct InstrumentData: Codable {
+    public let bin: String?
+    public let holderName: String?
+    public let scheme: String?
+    public let suffix: String?
+    public let expiryMonth: String?
+    public let expiryYear: String?
+    public let paymentToken: String?
+    public let email: String?
 }
 
-enum InstrumentStatus: String, Codable {
+public enum InstrumentStatus: String, Codable {
     case created
     case enabled
     case disabled
@@ -210,7 +227,7 @@ enum InstrumentStatus: String, Codable {
     case transient
 }
 
-enum PaymentMethodType: String, Codable {
+public enum PaymentMethodType: String, Codable {
     case card
     case applePay
     case googlePay
@@ -221,21 +238,21 @@ enum PaymentMethodType: String, Codable {
     case undetermined
 }
 
-struct PayrailsErrorList: Codable {
-    let errors: [PayrailsError]
+public struct PayrailsErrorList: Codable {
+    public let errors: [PayrailsError]
 }
 
-struct PayrailsError: Codable {
-    let id: UUID
-    let title: String
-    let detail: String
-    let meta: CodableValue?
+public struct PayrailsError: Codable {
+    public let id: UUID
+    public let title: String
+    public let detail: String
+    public let meta: CodableValue?
 }
 
-struct CodableValue: Codable {
+public struct CodableValue: Codable {
     let value: Any
     
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         
         if let intValue = try? container.decode(Int.self) {
@@ -251,7 +268,7 @@ struct CodableValue: Codable {
         }
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         
         if let intValue = value as? Int {
@@ -266,9 +283,4 @@ struct CodableValue: Codable {
             throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Unsupported CodableValue type"))
         }
     }
-}
-
-struct Instant: Codable {
-    let epochSecond: Int
-    let nano: Int
 }
