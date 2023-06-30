@@ -30,7 +30,6 @@ jobs:
         env:
           # more rules at semgrep.dev/explore
           SEMGREP_RULES: >-
-            .semgrep
             p/security-audit
             p/secrets
             p/supply-chain
@@ -45,6 +44,7 @@ jobs:
             p/javascript
             p/kubernetes
             p/terraform
+            p/swift
           SEMGREP_SEND_METRICS: 0
           SEMGREP_TIMEOUT: 1800
           #SEMGREP_BASELINE_REF: master
