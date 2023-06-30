@@ -30,7 +30,6 @@ jobs:
         env:
           # more rules at semgrep.dev/explore
           SEMGREP_RULES: >-
-            .semgrep
             p/security-audit
             p/secrets
             p/supply-chain
