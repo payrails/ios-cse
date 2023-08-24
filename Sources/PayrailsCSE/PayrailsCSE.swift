@@ -200,7 +200,6 @@ public struct Instrument: Codable {
     public let paymentMethod: PaymentMethodType
     public let status: InstrumentStatus
     public let description: String?
-    public let storeInstrument: Bool
     public let data: InstrumentData
     public let providerData: CodableValue?
     public let futureUsage: String?
