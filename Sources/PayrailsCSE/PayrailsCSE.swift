@@ -154,7 +154,7 @@ public struct PayrailsCSE {
     }
 }
 
-struct Card: Codable {
+public struct Card: Codable {
     var holderReference: String
     var cardNumber: String
     var expiryMonth: String
@@ -215,6 +215,7 @@ public struct InstrumentData: Codable {
     public let expiryYear: String?
     public let paymentToken: String?
     public let email: String?
+    public let network: String?
 }
 
 public enum InstrumentStatus: String, Codable {
