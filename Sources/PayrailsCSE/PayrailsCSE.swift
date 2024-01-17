@@ -22,7 +22,7 @@ public struct PayrailsCSE {
         cseConfig = config
     }
     
-    func encryptCard(card: Card) throws -> String {
+    public func encryptCard(card: Card) throws -> String {
         let jsonCard = try JSONEncoder().encode(card)
         
         guard let cseConfig = cseConfig else {
@@ -161,6 +161,22 @@ public struct Card: Codable {
     var expiryYear: String
     var holderName: String?
     var securityCode: String?
+    
+    public init(
+        holderReference: String,
+        cardNumber: String,
+        expiryMonth: String,
+        expiryYear: String,
+        holderName: String?,
+        securityCode: String?
+    ) {
+        self.holderReference = holderReference
+        self.cardNumber = cardNumber
+        self.expiryMonth = expiryMonth
+        self.expiryYear = expiryYear
+        self.holderName = holderName
+        self.securityCode = securityCode
+    }
 }
 
 struct TokenizationRequest: Codable {
