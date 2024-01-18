@@ -22,7 +22,7 @@ public struct PayrailsCSE {
         cseConfig = config
     }
     
-    public func encryptCard(card: Card) throws -> String {
+    public func encryptCardData(card: Card) throws -> String {
         let jsonCard = try JSONEncoder().encode(card)
         
         guard let cseConfig = cseConfig else {
@@ -61,7 +61,7 @@ public struct PayrailsCSE {
             securityCode: securityCode
         )
         
-        let encryptedCard = try! encryptCard(card: card)
+        let encryptedCard = try! encryptCardData(card: card)
         guard let tokenizeURL = URL(string: cseConfig.tokenization.links.tokenize.href) else {
             throw NSError(domain: "URLParsingError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
         }
