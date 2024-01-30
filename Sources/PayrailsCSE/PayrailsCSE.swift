@@ -210,7 +210,7 @@ struct CSEConfiguration: Codable {
 
 struct VaultConfiguration: Codable {
     let encryptionPublicKey: String
-    let providerConfigId: String
+    let providerConfigId: String?
 }
 
 struct Tokenization: Codable {
