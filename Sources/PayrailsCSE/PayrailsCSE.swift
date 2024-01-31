@@ -17,21 +17,16 @@ public struct PayrailsCSE {
     var cseConfig: CSEConfiguration?
     
     public init(data: String, version: String) {
-        print("Initializing config of version", version)
         let config = parseConfig(data: data)
         cseConfig = config
     }
     
-    func encryptCard(card: Card) throws -> String {
+    public func encryptCardData(card: Card) throws -> String {
         let jsonCard = try JSONEncoder().encode(card)
-        
-        guard let cseConfig = cseConfig else {
-            throw NSError(domain: "ConfigError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Missing Config"])
-        }
 
         let header = JWEHeader(keyManagementAlgorithm: .RSAOAEP256, contentEncryptionAlgorithm: .A256CBCHS512)
         
-        let publicKey: SecKey = try getPublicKey(cseConfig.tokenization.publicKey)
+        let publicKey: SecKey = try getPublicKey(extractPublicKey())
         let encrypter = Encrypter(keyManagementAlgorithm: .RSAOAEP256, contentEncryptionAlgorithm: .A256CBCHS512, encryptionKey: publicKey)!
         let jwe = try! JWE(header: header, payload: Payload(jsonCard), encrypter: encrypter)
         
@@ -52,6 +47,10 @@ public struct PayrailsCSE {
             throw NSError(domain: "ConfigError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Missing Config"])
         }
         
+        guard let tokenization = cseConfig.tokenization else {
+            throw NSError(domain: "ConfigError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Missing tokenization config"])
+        }
+        
         let card = Card(
             holderReference: cseConfig.holderReference,
             cardNumber: cardNumber,
@@ -61,25 +60,25 @@ public struct PayrailsCSE {
             securityCode: securityCode
         )
         
-        let encryptedCard = try! encryptCard(card: card)
-        guard let tokenizeURL = URL(string: cseConfig.tokenization.links.tokenize.href) else {
+        let encryptedCard = try! encryptCardData(card: card)
+        guard let tokenizeURL = URL(string: tokenization.links.tokenize.href) else {
             throw NSError(domain: "URLParsingError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
         }
         
-        
         var request = URLRequest(url: tokenizeURL)
-        request.httpMethod = cseConfig.tokenization.links.tokenize.method
+        request.httpMethod = tokenization.links.tokenize.method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(cseConfig.token)", forHTTPHeaderField: "Authorization")
         request.setValue(UUID().uuidString, forHTTPHeaderField: "x-idempotency-key")
-        
+
         let encoder = JSONEncoder()
         let jsonRequest = try encoder.encode(TokenizationRequest(
-            id: cseConfig.tokenization.id,
+            id: tokenization.id,
             holderReference: cseConfig.holderReference,
             encryptedInstrumentDetails: encryptedCard,
             futureUsage: futureUsage,
-            storeInstrument: storeInstrument
+            storeInstrument: storeInstrument,
+            vaultProviderConfigId: tokenization.vaultProviderConfigId
         ))
         request.httpBody = jsonRequest
         
@@ -101,7 +100,7 @@ public struct PayrailsCSE {
                 
                 if httpResponse.statusCode == 201 {
                     let jsonResponse = try JSONDecoder().decode(Instrument.self, from: data)
-                
+                    
                     completion(.success(TokenizeResponse(code: httpResponse.statusCode, instrument: jsonResponse, errors: nil)))
                     return
                 } else {
@@ -152,15 +151,45 @@ public struct PayrailsCSE {
         
         return publicKeyRef
     }
+
+    private func extractPublicKey() throws -> String {
+        guard let cseConfig = cseConfig else {
+            throw NSError(domain: "ConfigError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Missing Config"])
+        }
+        
+        if let tokenization = cseConfig.tokenization {
+            return tokenization.publicKey
+        } else if let vaultConfiguration = cseConfig.vaultConfiguration {
+            return vaultConfiguration.encryptionPublicKey
+        } else {
+            throw NSError(domain: "Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Missing publicKey in configuration"])
+        }
+    }
 }
 
 public struct Card: Codable {
-    var holderReference: String
-    var cardNumber: String
-    var expiryMonth: String
-    var expiryYear: String
-    var holderName: String?
-    var securityCode: String?
+    public var holderReference: String?
+    public var cardNumber: String?
+    public var expiryMonth: String?
+    public var expiryYear: String?
+    public var holderName: String?
+    public var securityCode: String?
+    
+    public init(
+        holderReference: String?,
+        cardNumber: String?,
+        expiryMonth: String?,
+        expiryYear: String?,
+        holderName: String?,
+        securityCode: String?
+    ) {
+        self.holderReference = holderReference
+        self.cardNumber = cardNumber
+        self.expiryMonth = expiryMonth
+        self.expiryYear = expiryYear
+        self.holderName = holderName
+        self.securityCode = securityCode
+    }
 }
 
 struct TokenizationRequest: Codable {
@@ -169,18 +198,26 @@ struct TokenizationRequest: Codable {
     let encryptedInstrumentDetails: String
     let futureUsage: FutureUsage?
     let storeInstrument: Bool?
+    let vaultProviderConfigId: String?
 }
 
 struct CSEConfiguration: Codable {
     let token: String
     let holderReference: String
-    let tokenization: Tokenization
+    let tokenization: Tokenization?
+    let vaultConfiguration: VaultConfiguration?
+}
+
+struct VaultConfiguration: Codable {
+    let encryptionPublicKey: String
+    let providerConfigId: String?
 }
 
 struct Tokenization: Codable {
     let id: UUID
     let publicKey: String
     let links: Links
+    let vaultProviderConfigId: String?
 }
 
 struct Links: Codable {
