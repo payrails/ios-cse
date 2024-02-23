@@ -13,11 +13,13 @@ public struct TokenizeResponse: Codable {
     public let errors: [PayrailsError]?
 }
 
+
+
 public struct PayrailsCSE {
     var cseConfig: CSEConfiguration?
     
-    public init(data: String, version: String) {
-        let config = parseConfig(data: data)
+    public init(data: String, version: String) throws {
+        let config = try parseConfig(data: data)
         cseConfig = config
     }
     
@@ -117,13 +119,27 @@ public struct PayrailsCSE {
         task.resume()
     }
     
-    private func parseConfig(data: String) -> CSEConfiguration {
+    private func parseConfig(data: String) throws -> CSEConfiguration {
         guard let decodedData = Data(base64Encoded: data) else {
-            fatalError("Failed to decode Base64 data")
+            throw NSError(
+                domain: "payrails:client.cse", 
+                code: 0,
+                userInfo: [
+                    "code": "payrails:client.cse:configuration.malformed",
+                    "detail": "The provided configuration string is invalid. Please ensure it matches the required format and structure as defined in the documentation",
+                    "docUrl": "https://docs.payrails.com/docs/sdk#initializing-the-sdk"
+                ])
         }
         
         guard let config = try? JSONDecoder().decode(CSEConfiguration.self, from: decodedData) else {
-            fatalError("Failed to parse CSEConfiguration")
+            throw NSError(
+                domain: "payrails:client.cse",
+                code: 0,
+                userInfo: [
+                    "code": "payrails:client.cse:configuration.malformed",
+                    "detail": "The provided configuration string is invalid. Please ensure it matches the required format and structure as defined in the documentation",
+                    "docUrl": "https://docs.payrails.com/docs/sdk#initializing-the-sdk"
+                ])
         }
         
         return config
@@ -146,7 +162,15 @@ public struct PayrailsCSE {
         ]
             
         guard let publicKeyRef = SecKeyCreateWithData(publicKeyData as CFData, options as CFDictionary, &error) else {
-            fatalError("Failed to create public key: \(error!)")
+            debugPrint("Failed to create public key: \(error!)")
+            throw NSError(
+                domain: "payrails:client.cse",
+                code: 0,
+                userInfo: [
+                    "code": "payrails:client.cse:configuration.invalid",
+                    "detail": "The provided configuration is missing the public key required for encryption",
+                    "docUrl": "https://docs.payrails.com/docs/tokenize-cards-with-client-side-encryption",
+                ])
         }
         
         return publicKeyRef
