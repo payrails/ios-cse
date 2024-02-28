@@ -10,7 +10,7 @@ jobs:
     name: Ready For Review
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: kv109/action-ready-for-review@0.2
       env:
         SLACK_CHANNEL: tech-reviews
