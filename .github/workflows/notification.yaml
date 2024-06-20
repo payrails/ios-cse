@@ -20,6 +20,6 @@ jobs:
         PR_READY_FOR_REVIEW_FORMAT: |
           :github: *${{ github.event.repository.name }}* pull request *opened* by { pull_request.user.login }: <{ pull_request.html_url }|{ pull_request.title }>
         PR_REJECTED_FORMAT: |
-          :warning: *${{ github.event.repository.name }}* pull request *rejected* by { review.user.login }: <{ pull_request.html_url }|{ pull_request.title }>
+          :warning: *${{ github.event.repository.name }}* pull request *changes requested* by { review.user.login }: <{ pull_request.html_url }|{ pull_request.title }>
         PR_COMMENTED_FORMAT: |
           :paperclip: *${{ github.event.repository.name }}* pull request *commented* by { review.user.login }: <{ pull_request.html_url }|{ pull_request.title }>
