@@ -7,4 +7,4 @@ jobs:
     name: Reusable
     uses: payrails/actions/.github/workflows/reusable-naming.yaml@main
     secrets:
-      jira_token: ${{ secrets.JIRA_TOKEN }}
+      linear_api_key_read: ${{ secrets.LINEAR_API_KEY_READ }}
