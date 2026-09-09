@@ -20,7 +20,7 @@ Use `https://github.com/Payrails/ios-cse` as the repository URL
 ```(swift)
 import PayrailsCSE
 
-let cse = PayrailsCSE(
+let cse = PayrailsCSEClient(
     data: initResponse.data,
     version: initResponse.version
 )
