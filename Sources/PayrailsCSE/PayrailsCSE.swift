@@ -15,7 +15,7 @@ public struct TokenizeResponse: Codable {
 
 
 
-public struct PayrailsCSE {
+public struct PayrailsCSEClient {
     var cseConfig: CSEConfiguration?
     
     public init(data: String, version: String) throws {
